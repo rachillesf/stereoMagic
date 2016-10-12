@@ -1,0 +1,13 @@
+<launch>
+
+
+  <node pkg="stereo" name="stereo" type="stereo_node">
+ 
+  </node>
+
+  <node pkg="stereo" name="retify" type="retify.py">
+ 
+  </node>
+
+
+</launch>
