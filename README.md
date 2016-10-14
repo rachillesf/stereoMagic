@@ -5,7 +5,7 @@
 <img src="https://s15.postimg.org/4kwsa9ygr/stereo_pessoa.png" width="500"/>
 
 ### Video:
-[![Alt text for your video](http://img.youtube.com/vi/ZUinHSjUZNM/0.jpg)]https://www.youtube.com/watch?v=ZUinHSjUZNM)
+[![Alt text for your video](http://img.youtube.com/vi/ZUinHSjUZNM/0.jpg)](https://www.youtube.com/watch?v=ZUinHSjUZNM)
 
 ## stereo_node: 
 ### subscribes: camera/left/ret and camera/right/ret. 
