@@ -1,10 +1,11 @@
 # ROS_StereoWLS
 ### A Ros node for real-time stereo disparity generation using stereo SGBM and WLS filtering, with opencv.
 
-
+### Sample Image:
 <img src="https://s15.postimg.org/4kwsa9ygr/stereo_pessoa.png" width="500"/>
-<img src="https://s13.postimg.org/63fyidton/stereo_cadeiras.png" width="500"/>
-<img src="https://s22.postimg.org/8z2tsxixt/stereo_cadeira_mesa.png" width="500"/>
+
+### Video:
+[![Alt text for your video](http://img.youtube.com/vi/ZUinHSjUZNM/0.jpg)]https://www.youtube.com/watch?v=ZUinHSjUZNM)
 
 ## stereo_node: 
 ### subscribes: camera/left/ret and camera/right/ret. 
