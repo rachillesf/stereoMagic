@@ -1,5 +1,5 @@
 # ROS_StereoWLS
-A Ros node for stereo disparity generation using stereo SGBM and WLS filtering, with opencv.
+A Ros node for real-time stereo disparity generation using stereo SGBM and WLS filtering, with opencv.
 
 
 <img src="https://s15.postimg.org/4kwsa9ygr/stereo_pessoa.png" width="500"/>
