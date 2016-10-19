@@ -22,17 +22,17 @@ class image_converter:
     self.rimage_sub = message_filters.Subscriber("/camera/right/image_raw",Image)
     self.limage_sub = message_filters.Subscriber("/camera/left/image_raw",Image)
     self.ts = message_filters.TimeSynchronizer([self.limage_sub, self.rimage_sub], 1).registerCallback(self.callback)
-    self.dist = np.load('dist.npy')
-    self.mtx = np.array(np.load('mtx.npy'))
-    self.ret = [np.load('ret.npy')]
-    self.rvecs = np.load('rvecs.npy')
-    self.tvecs = np.load('tvecs.npy')
-    print("Disparity Node Initialized")
+    self.dist = np.load('src/stereo/params/dist.npy')
+    self.mtx = np.array(np.load('src/stereo/params/mtx.npy'))
+    self.ret = [np.load('src/stereo/params/ret.npy')]
+    self.rvecs = np.load('src/stereo/params/rvecs.npy')
+    self.tvecs = np.load('src/stereo/params/tvecs.npy')
+    print("Rectify Node Initialized")
 
 
 
   def retify(self,img):
-    img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    #img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     img = cv2.resize(img, (900,600), interpolation = cv2.INTER_AREA)
     h,  w = img.shape[:2]
     newcameramtx, roi=cv2.getOptimalNewCameraMatrix(self.mtx,self.dist,(w,h),0,(w,h))
@@ -45,23 +45,24 @@ class image_converter:
 
 
   def callback(self,left,right):
+
     try:
-      cv_image_left = CvBridge().imgmsg_to_cv2(left, "bgr8")
+      cv_image_left = CvBridge().imgmsg_to_cv2(left)
     except CvBridgeError as e:
       print(e)
 
     try:
-      cv_image_right = CvBridge().imgmsg_to_cv2(right, "bgr8")
+      cv_image_right = CvBridge().imgmsg_to_cv2(right)
     except CvBridgeError as e:
       print(e)
 
-    left = cv2.pyrDown( self.retify(cv_image_left) )
-    right = cv2.pyrDown( self.retify(cv_image_right) )
+    left = cv2.pyrDown(self.retify(cv_image_left))
+    right = cv2.pyrDown(self.retify(cv_image_right))
 
 
     try:
       self.left_pub.publish(self.bridge.cv2_to_imgmsg(left, "8UC1"))
-    except CvBridgeError as e:
+    except CvBridgeError as e:\
       print(e)
 
     try:

@@ -16,6 +16,13 @@
 #include "opencv2/ximgproc/disparity_filter.hpp"
 #include <iostream>
 #include <string>
+#include <math.h>
+
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/visualization/cloud_viewer.h>
 
 using namespace message_filters;
 using namespace sensor_msgs;
@@ -23,16 +30,16 @@ using namespace cv;
 using namespace cv::ximgproc;
 using namespace std;
 
-//static const std::string OPENCV_WINDOW = "Image window";
+
+bool show_PointCloud = 1;
 
 image_transport::Publisher pub;
-
 //global variable initialization
 double vis_mult = 3.0;
 int wsize = 3;
-int max_disp = 160;
-double lambda = 8000.0;
-double sigma = 2.0;
+int max_disp = 16 * 8;
+double lambda = 5000.0;
+double sigma = 1.0;
 
 Mat left_for_matcher,right_for_matcher;
 Mat left_disp, right_disp;
@@ -76,6 +83,68 @@ void compute_stereo(Mat& imL, Mat& imR)
 
   //visualization
   getDisparityVis(filtered_disp,filtered_disp_vis,vis_mult);
+  double w = imR.cols;
+  double  h = imR.rows;
+  double f = 0.8*w ;
+
+  // generate point cloud
+  Mat Q = Mat(4,4, CV_64F, double(0));
+  Q.at<double>(0,0) = 1.0;
+  Q.at<double>(0,3) = -0.5*w;
+  Q.at<double>(1,1) = -1.0;
+  Q.at<double>(1,3) = 0.5*h;
+  Q.at<double>(2,3) = -f;
+  Q.at<double>(3,2) = 0.5;
+
+
+  Mat imgDisparity8U(filtered_disp);
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud(new  pcl::PointCloud<pcl::PointXYZRGB>());
+  Mat xyz;
+  reprojectImageTo3D(imgDisparity8U, xyz, Q, true);
+  pointcloud->width = static_cast<uint32_t>(imgDisparity8U.cols);
+  pointcloud->height = static_cast<uint32_t>(imgDisparity8U.rows);
+  pointcloud->is_dense = false;
+  pcl::PointXYZRGB point;
+  for (int i = 0; i < imgDisparity8U.rows; ++i)
+  {
+    uchar* rgb_ptr = imL.ptr<uchar>(i);
+    uchar* imgDisparity8U_ptr = imgDisparity8U.ptr<uchar>(i);
+    double* xyz_ptr = xyz.ptr<double>(i);
+
+    for (int j = 0; j < imgDisparity8U.cols; ++j)
+    {
+
+      uchar d = imgDisparity8U_ptr[j];
+      if (d == 0) continue;
+      Point3f p = xyz.at<Point3f>(i, j);
+
+      double radius = sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
+      if(radius < 8)
+        {
+          point.z = p.z;   // I have also tried p.z/16
+          point.x = p.x;
+          point.y = p.y;
+                 //std:: cout << "x:" << p.x << std::endl;
+                 //std:: cout << "y:" << p.y << std::endl;
+                 //std:: cout << "z:" << p.z << std::endl;
+
+          point.b = 255;//rgb_ptr[3 * j];
+          point.g = 0;//rgb_ptr[3 * j + 1];
+          point.r = 0;//rgb_ptr[3 * j + 2];
+          pointcloud->points.push_back(point);
+        }
+    }
+ }
+
+ if(show_PointCloud)
+ {
+   pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
+   viewer.showCloud(pointcloud);
+   while (!viewer.wasStopped ())
+   {
+   }
+ }
+
 }
 
 
@@ -116,7 +185,6 @@ void callback(const ImageConstPtr& left, const ImageConstPtr& right) {
 }
 
 int main(int argc, char **argv) {
-
 
 
 //  namedWindow("filtered disparity", WINDOW_AUTOSIZE);
