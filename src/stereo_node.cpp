@@ -33,13 +33,14 @@ using namespace cv::ximgproc;
 using namespace std;
 
 
-bool show_PointCloud = 0;
+bool show_PointCloud = 1 ;
 
 image_transport::Publisher pub;
 ros::Publisher pcpub;
+
 //global variable initialization
 double vis_mult = 3.0;
-int wsize = 3;
+int wsize = 10;
 int max_disp = 16 * 8;
 double lambda = 5000.0;
 double sigma = 1.0;
@@ -210,10 +211,6 @@ void callback(const ImageConstPtr& left, const ImageConstPtr& right) {
    compute_stereo(cv_left->image,cv_right->image);
    sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "mono8",filtered_disp_vis).toImageMsg();
    pub.publish(msg);
-
-   //cv::imshow(OPENCV_WINDOW, filtered_disp_vis);
-   //cv::waitKey(3);
-
 
 }
 

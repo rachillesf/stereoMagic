@@ -18,8 +18,8 @@ class image_converter:
   def __init__(self):
     self.left_pub = rospy.Publisher("/camera/left/image_raw",Image,queue_size=1)
     self.right_pub = rospy.Publisher("/camera/right/image_raw",Image,queue_size=1)
-    self.left = cv2.imread('src/stereo/sample_images/left.png',0)
-    self.right = cv2.imread('src/stereo/sample_images/right.png',0)
+    self.left = cv2.imread('/home/rachillesf/catkin_ws/src/stereo/sample_images/left.png',0)
+    self.right = cv2.imread('/home/rachillesf/catkin_ws/src/stereo/sample_images/right.png',0)
     self.bridge = CvBridge()
 
     print("Simulator Disparity Node Initialized")

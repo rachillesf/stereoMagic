@@ -22,11 +22,11 @@ class image_converter:
     self.rimage_sub = message_filters.Subscriber("/camera/right/image_raw",Image)
     self.limage_sub = message_filters.Subscriber("/camera/left/image_raw",Image)
     self.ts = message_filters.TimeSynchronizer([self.limage_sub, self.rimage_sub], 1).registerCallback(self.callback)
-    self.dist = np.load('src/stereo/params/dist.npy')
-    self.mtx = np.array(np.load('src/stereo/params/mtx.npy'))
-    self.ret = [np.load('src/stereo/params/ret.npy')]
-    self.rvecs = np.load('src/stereo/params/rvecs.npy')
-    self.tvecs = np.load('src/stereo/params/tvecs.npy')
+    self.dist = np.load('/home/rachillesf/catkin_ws/src/stereo/params/dist.npy')
+    self.mtx = np.array(np.load('/home/rachillesf/catkin_ws/src/stereo/params/mtx.npy'))
+    self.ret = [np.load('/home/rachillesf/catkin_ws/src/stereo/params/ret.npy')]
+    self.rvecs = np.load('/home/rachillesf/catkin_ws/src/stereo/params/rvecs.npy')
+    self.tvecs = np.load('/home/rachillesf/catkin_ws/src/stereo/params/tvecs.npy')
     print("Rectify Node Initialized")
 
 
