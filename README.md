@@ -1,4 +1,4 @@
-# Stereo
+# StereoMagic
 ### A Ros package for real-time stereo depth map and pointcloud generation.
 ### 
 ### Mobile Robot Real Time Stereo Matching Video :
