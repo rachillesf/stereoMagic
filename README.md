@@ -6,7 +6,6 @@
 
 ### Disparity Image and PointCloud Generation:
 <img src="https://s18.postimg.org/xfvf89nrt/imagem_pointcloud2.png" width="700"/>
-### The disparity image is generated using stereoSGBM and WLSFilter in order to obtain a better edge definition of the disparity map. 
 
 ## Quick Example(no camera needed!):
 ### $ roslaunch roslaunch stereo stereo_sim.launch 
