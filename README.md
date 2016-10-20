@@ -11,28 +11,29 @@
 
 
 ## stereo_node: 
-### perform the depth image generation and pointcloud generation.
-### subscribes: camera/left/ret and camera/right/ret. 
-### both topics contain retified images, change for your own camera or use retify.py node to retify images
-### publish in camera/depth/image and camera/depth/pointcloud
+#### perform the depth image generation and pointcloud generation.
+#### subscribes: camera/left/ret and camera/right/ret. 
+#### both topics contain retified images, change for your own camera or use retify.py node to retify images
+#### publish in camera/depth/image and camera/depth/pointcloud
 
 ## rectify.py:
-### rectify images based on params saved in stereo/params
-### subscribe: /camera/left/image_raw and  /camera/right/image_raw
-### change for your own camera.
+#### rectify images based on params saved in stereo/params
+#### subscribe: /camera/left/image_raw and  /camera/right/image_raw
+#### change for your own camera.
 
 ## camera_simulador:
-### simulate a camera loading and publishing images left.png and right.png from stereo/sample_images
-### publish in /camera/left/image_raw and /camera/right/image_raw 
+#### simulate a camera loading and publishing images left.png and right.png from stereo/sample_images
+#### publish in /camera/left/image_raw and /camera/right/image_raw 
 
 ## depends:
-### ROS (tested with kinetic)
-### opencv 3.1 with contrib modules
-### pcl
+#### ROS (tested with kinetic)
+#### opencv 3.1 with contrib modules
+#### pcl
 
-## To do:
-### launch file
-
+## TODO:
+#### fix launch files path
+#### improve rectify node using c++ and better calibration
+#### 
 
 ### Ricardo Achilles Filho
 ### rachillesf@gmail.com
