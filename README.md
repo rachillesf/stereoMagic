@@ -8,10 +8,10 @@
 ### Disparity Image and PointCloud Generation:
 <img src="https://s18.postimg.org/xfvf89nrt/imagem_pointcloud2.png" width="700"/>
 
-## Quick Example(no camera needed!):
+## Quick Example(no camera needed! uses sample images):
 ### $ roslaunch roslaunch stereo stereo_sim.launch 
 #### (please, check the path of calibration files on rectify.py and camera_simulator.py,change it to your own global path)
-#### This will load sample images and generate point cloud from them.
+
 
 ## Use on Your Own camera feed:
 ### $ rosrun stereo stereo_node
