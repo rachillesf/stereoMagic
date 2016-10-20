@@ -2,7 +2,7 @@
 ### A Ros package for real-time stereo depth map and pointcloud generation.
 ### 
 ### Mobile Robot Real Time Stereo Matching Video :
-(click to open)
+#### (click to open)
 [![Alt text for your video](http://img.youtube.com/vi/ZUinHSjUZNM/0.jpg)](https://www.youtube.com/watch?v=ZUinHSjUZNM)
 
 ### Disparity Image and PointCloud Generation:
