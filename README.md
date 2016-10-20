@@ -1,7 +1,8 @@
 # Stereo
 ### A Ros package for real-time stereo depth map and pointcloud generation.
 ### 
-### Real Time Stereo Matching Video:
+### Mobile Robot Real Time Stereo Matching Video :
+(click to open)
 [![Alt text for your video](http://img.youtube.com/vi/ZUinHSjUZNM/0.jpg)](https://www.youtube.com/watch?v=ZUinHSjUZNM)
 
 ### Disparity Image and PointCloud Generation:
@@ -20,10 +21,15 @@
 
 
 
-## depends:
+## Depends:
 #### ROS (tested with kinetic)
 #### opencv 3.1 with contrib modules
 #### pcl
+
+## Hardware used in tests:
+#### Pioneer P3-DX (for moving shoots and video recording)
+#### PointGrey Bumblebee2 Camera
+#### Dell Precision Workstation
 
 ## TODO:
 #### fix launch files path
