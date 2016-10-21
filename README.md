@@ -1,6 +1,6 @@
 # StereoMagic
 ### A Ros package for real-time stereo depth map and pointcloud generation.
-### 
+###
 ### Mobile Robot Real Time Stereo Matching Video :
 #### (click to open)
 [![Alt text for your video](http://img.youtube.com/vi/ZUinHSjUZNM/0.jpg)](https://www.youtube.com/watch?v=ZUinHSjUZNM)
@@ -9,8 +9,8 @@
 <img src="https://s18.postimg.org/xfvf89nrt/imagem_pointcloud2.png" width="700"/>
 
 ## Quick Example(no camera needed! uses sample images):
-### $ roslaunch roslaunch stereo stereo_sim.launch 
-#### (please, check the path of calibration files on rectify.py and camera_simulator.py,change it to your own global path)
+### $ roslaunch roslaunch stereo stereo_sim.launch
+#### (please, change the GLOBAL_PATH variable in rectify.py and camera_simulator.py to the path of your workspace)
 
 
 ## Use on Your Own camera feed:
@@ -34,10 +34,7 @@
 ## TODO:
 #### fix launch files path
 #### improve rectify node using c++ and better calibration
-#### 
+####
 
 ### Ricardo Achilles Filho
 ### rachillesf@gmail.com
-
-
-
