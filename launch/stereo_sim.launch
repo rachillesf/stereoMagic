@@ -1,10 +1,12 @@
 <launch>
 
         <node pkg="stereo" type="camera_simulator.py" name="camera_simulator" />
-        
+
         <node pkg="stereo"  type="rectify.py" name="rectify" />
 
-        <node pkg="stereo" type="stereo_node" name="stereo_node">
+        <node pkg="stereo" type="stereo_node" name="stereo_node" />
+
+        <node pkg="stereo" type="stereo_tf_broadcaster" name="stereo_tf_broadcaster">
 
 
         </node>

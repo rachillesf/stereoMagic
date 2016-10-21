@@ -33,10 +33,11 @@ using namespace cv::ximgproc;
 using namespace std;
 
 
-bool enableVisualization = 1 ;
 
+bool enableVisualization = 0 ;
+// uncomment to visualize results
 static const std::string OPENCV_WINDOW = "Image window";
-pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
+
 
 //publishers for image and pointcloud
 image_transport::Publisher pub;
@@ -45,9 +46,9 @@ ros::Publisher pcpub;
 //parameters for stereo matching and filtering
 double vis_mult = 3.0;
 int wsize = 10;
-int max_disp = 16 * 8;
-double lambda = 5000.0;
-double sigma = 1.0;
+int max_disp = 16 * 15;
+double lambda = 10000.0;
+double sigma = 0.8;
 
 
 //Some object instatiation that can be done only once
@@ -110,13 +111,13 @@ void compute_stereo(Mat& imL, Mat& imR)
   Q.at<double>(3,2) = 0.5;
 
 
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud(new  pcl::PointCloud<pcl::PointXYZRGB>());
+  pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud(new  pcl::PointCloud<pcl::PointXYZ>());
   Mat xyz;
   reprojectImageTo3D(filtered_disp, xyz, Q, true);
   pointcloud->width = static_cast<uint32_t>(filtered_disp.cols);
   pointcloud->height = static_cast<uint32_t>(filtered_disp.rows);
-  pointcloud->is_dense = false;
-  pcl::PointXYZRGB point;
+  pointcloud->is_dense = true;
+  pcl::PointXYZ point;
   for (int i = 0; i < filtered_disp.rows; ++i)
   {
     uchar* rgb_ptr = imL.ptr<uchar>(i);
@@ -137,9 +138,6 @@ void compute_stereo(Mat& imL, Mat& imR)
         point.x = p.x;
         point.y = p.y;
 
-        point.b = 255;//rgb_ptr[3 * j];
-        point.g = 0;//rgb_ptr[3 * j + 1];
-        point.r = 0;//rgb_ptr[3 * j + 2];
         pointcloud->points.push_back(point);
       }
 
@@ -148,40 +146,38 @@ void compute_stereo(Mat& imL, Mat& imR)
         point.z = 0.0;   // I have also tried p.z/16
         point.x = 0.0;
         point.y = 0.0;
-
-        point.b = 0;//rgb_ptr[3 * j];
-        point.g = 0;//rgb_ptr[3 * j + 1];
-        point.r = 0;//rgb_ptr[3 * j + 2];
         pointcloud->points.push_back(point);
       }
     }
   }
 
   // voxel grid filter
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered(new  pcl::PointCloud<pcl::PointXYZRGB>());
-  pcl::VoxelGrid<pcl::PointXYZRGB> sor;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new  pcl::PointCloud<pcl::PointXYZ>());
+  pcl::VoxelGrid<pcl::PointXYZ> sor;
   sor.setInputCloud (pointcloud);
-  sor.setLeafSize (0.025, 0.025, 0.025);
+  sor.setLeafSize (0.03, 0.03, 0.03);
   sor.filter (*cloud_filtered);
 
 
   //outliner removal filter
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered2(new  pcl::PointCloud<pcl::PointXYZRGB>());
-  pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor1;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered2(new  pcl::PointCloud<pcl::PointXYZ>());
+  pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor1;
   sor1.setInputCloud (cloud_filtered);
-  sor1.setMeanK (150);
-  sor1.setStddevMulThresh (0.005);
+  sor1.setMeanK (100);
+  sor1.setStddevMulThresh (0.001);
   sor1.filter (*cloud_filtered2);
 
    // Convert to ROS data type
    sensor_msgs::PointCloud2 pointcloud_msg;
    pcl:: toROSMsg(*cloud_filtered2,pointcloud_msg);
+   pointcloud_msg.header.frame_id = "stereo_frame";
 
    // Publishes pointcloud message
    pcpub.publish(pointcloud_msg);
 
    if(enableVisualization)
    {
+     pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
      cv::imshow(OPENCV_WINDOW, filtered_disp_vis);
      viewer.showCloud(cloud_filtered2);
      cv::waitKey(3);

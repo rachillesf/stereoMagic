@@ -35,13 +35,11 @@ include_directories(
 ## Declare a C++ executable
 add_executable(stereo_node src/stereo_node.cpp)
 add_executable(calib_camera src/calib_camera.cpp)
+add_executable(stereo_tf_broadcaster src/stereo_tf_broadcaster.cpp)
 
 
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(stereo_node
-   ${catkin_LIBRARIES}
- )
-target_link_libraries(calib_camera
-     ${catkin_LIBRARIES}
-   )
+target_link_libraries(stereo_node ${catkin_LIBRARIES})
+target_link_libraries(calib_camera ${catkin_LIBRARIES})
+target_link_libraries(stereo_tf_broadcaster ${catkin_LIBRARIES})
