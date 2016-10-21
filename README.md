@@ -13,7 +13,7 @@
 #### (please, change the GLOBAL_PATH variable in rectify.py and camera_simulator.py to the path of your workspace)
 
 
-## Use on Your Own camera feed:
+## Use it on Your Own camera feed:
 ### $ rosrun stereo stereo_node
 ###
 ### rqt_graph vis:
@@ -24,7 +24,7 @@
 ## Depends:
 #### ROS (tested with kinetic)
 #### opencv 3.1 with contrib modules
-#### pcl
+#### PCL 1.7 (comes with ROS kinect full-desktop-install)
 
 ## Hardware used in tests:
 #### Pioneer P3-DX (for moving shoots and video recording)
@@ -32,9 +32,9 @@
 #### Dell Precision Workstation
 
 ## TODO:
-#### fix launch files path
-#### improve rectify node using c++ and better calibration
+#### improve rectify node using c++ and better calibration routine
 ####
+
 
 ### Ricardo Achilles Filho
 ### rachillesf@gmail.com
