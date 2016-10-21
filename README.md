@@ -22,9 +22,9 @@
 
 
 ## Depends:
-#### ROS (tested with kinetic)
+#### ROS (tested with kineti)
 #### opencv 3.1 with contrib modules
-#### pcl
+#### PCL 1.7 (comes with ROS kinect full-desktop-install)
 
 ## Hardware used in tests:
 #### Pioneer P3-DX (for moving shoots and video recording)
@@ -35,6 +35,7 @@
 #### fix launch files path
 #### improve rectify node using c++ and better calibration
 ####
+
 
 ### Ricardo Achilles Filho
 ### rachillesf@gmail.com
