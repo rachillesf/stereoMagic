@@ -22,7 +22,7 @@
 
 
 ## Depends:
-#### ROS (tested with kineti)
+#### ROS (tested with kinetic)
 #### opencv 3.1 with contrib modules
 #### PCL 1.7 (comes with ROS kinect full-desktop-install)
 
