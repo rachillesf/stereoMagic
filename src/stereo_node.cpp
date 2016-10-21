@@ -33,34 +33,39 @@ using namespace cv::ximgproc;
 using namespace std;
 
 
-bool show_PointCloud = 1 ;
+bool enableVisualization = 1 ;
 
+static const std::string OPENCV_WINDOW = "Image window";
+pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
+
+//publishers for image and pointcloud
 image_transport::Publisher pub;
 ros::Publisher pcpub;
 
-//global variable initialization
+//parameters for stereo matching and filtering
 double vis_mult = 3.0;
 int wsize = 10;
 int max_disp = 16 * 8;
 double lambda = 5000.0;
 double sigma = 1.0;
 
+
+//Some object instatiation that can be done only once
 Mat left_for_matcher,right_for_matcher;
 Mat left_disp, right_disp;
 Mat filtered_disp;
-
 Rect ROI ;
 Ptr<DisparityWLSFilter> wls_filter;
-
 Mat filtered_disp_vis;
 
 
 void compute_stereo(Mat& imL, Mat& imR)
 {
+  //confidence map
   Mat conf_map = Mat(imL.rows,imL.cols,CV_8U);
   conf_map = Scalar(255);
 
-  // downsample images
+  // downsample images to speed up results
   max_disp/=2;
   if(max_disp%16 != 0) max_disp += 16-(max_disp%16);
   resize(imL, left_for_matcher,Size(),0.5,0.5);
@@ -87,11 +92,15 @@ void compute_stereo(Mat& imL, Mat& imR)
 
   //visualization
   getDisparityVis(filtered_disp,filtered_disp_vis,vis_mult);
+
+
+  //PointCloud Generation======================================================
+
+  // Q matrix (guess until we can do the correct calib process)
   double w = imR.cols;
   double  h = imR.rows;
   double f = 0.8*w ;
 
-  // Q matrix (guess until we can do the correct calib process)
   Mat Q = Mat(4,4, CV_64F, double(0));
   Q.at<double>(0,0) = 1.0;
   Q.at<double>(0,3) = -0.5*w;
@@ -100,25 +109,24 @@ void compute_stereo(Mat& imL, Mat& imR)
   Q.at<double>(2,3) = -f;
   Q.at<double>(3,2) = 0.5;
 
-  // create pointcloud
-  Mat imgDisparity8U(filtered_disp);
+
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud(new  pcl::PointCloud<pcl::PointXYZRGB>());
   Mat xyz;
-  reprojectImageTo3D(imgDisparity8U, xyz, Q, true);
-  pointcloud->width = static_cast<uint32_t>(imgDisparity8U.cols);
-  pointcloud->height = static_cast<uint32_t>(imgDisparity8U.rows);
+  reprojectImageTo3D(filtered_disp, xyz, Q, true);
+  pointcloud->width = static_cast<uint32_t>(filtered_disp.cols);
+  pointcloud->height = static_cast<uint32_t>(filtered_disp.rows);
   pointcloud->is_dense = false;
   pcl::PointXYZRGB point;
-  for (int i = 0; i < imgDisparity8U.rows; ++i)
+  for (int i = 0; i < filtered_disp.rows; ++i)
   {
     uchar* rgb_ptr = imL.ptr<uchar>(i);
-    uchar* imgDisparity8U_ptr = imgDisparity8U.ptr<uchar>(i);
+    uchar* filtered_disp_ptr = filtered_disp.ptr<uchar>(i);
     double* xyz_ptr = xyz.ptr<double>(i);
 
-    for (int j = 0; j < imgDisparity8U.cols; ++j)
+    for (int j = 0; j < filtered_disp.cols; ++j)
     {
 
-      uchar d = imgDisparity8U_ptr[j];
+      uchar d = filtered_disp_ptr[j];
       //if (d == 0) continue;
       Point3f p = xyz.at<Point3f>(i, j);
 
@@ -134,6 +142,7 @@ void compute_stereo(Mat& imL, Mat& imR)
         point.r = 0;//rgb_ptr[3 * j + 2];
         pointcloud->points.push_back(point);
       }
+
       else
       {
         point.z = 0.0;   // I have also tried p.z/16
@@ -152,7 +161,7 @@ void compute_stereo(Mat& imL, Mat& imR)
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered(new  pcl::PointCloud<pcl::PointXYZRGB>());
   pcl::VoxelGrid<pcl::PointXYZRGB> sor;
   sor.setInputCloud (pointcloud);
-  sor.setLeafSize (0.01, 0.01, 0.01);
+  sor.setLeafSize (0.025, 0.025, 0.025);
   sor.filter (*cloud_filtered);
 
 
@@ -160,30 +169,31 @@ void compute_stereo(Mat& imL, Mat& imR)
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered2(new  pcl::PointCloud<pcl::PointXYZRGB>());
   pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor1;
   sor1.setInputCloud (cloud_filtered);
-  sor1.setMeanK (50);
-  sor1.setStddevMulThresh (0.01);
+  sor1.setMeanK (150);
+  sor1.setStddevMulThresh (0.005);
   sor1.filter (*cloud_filtered2);
 
    // Convert to ROS data type
-   sensor_msgs::PointCloud2 output;
-   pcl:: toROSMsg(*cloud_filtered2,output);
-   // Publish the data
-   pcpub.publish(output);
+   sensor_msgs::PointCloud2 pointcloud_msg;
+   pcl:: toROSMsg(*cloud_filtered2,pointcloud_msg);
 
-   if(show_PointCloud)
+   // Publishes pointcloud message
+   pcpub.publish(pointcloud_msg);
+
+   if(enableVisualization)
    {
-     pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
+     cv::imshow(OPENCV_WINDOW, filtered_disp_vis);
      viewer.showCloud(cloud_filtered2);
-     while (!viewer.wasStopped ())
-     {
-     }
+     cv::waitKey(3);
    }
+}
 
- }
+
 
 
 
 void callback(const ImageConstPtr& left, const ImageConstPtr& right) {
+  // conversion to rosmsgs::Image to cv::Mat using cv_bridge
 
   cv_bridge::CvImagePtr cv_left;
   try
@@ -196,7 +206,7 @@ void callback(const ImageConstPtr& left, const ImageConstPtr& right) {
       return;
     }
 
-    cv_bridge::CvImagePtr cv_right;
+  cv_bridge::CvImagePtr cv_right;
   try
       {
         cv_right = cv_bridge::toCvCopy(right);
@@ -216,21 +226,24 @@ void callback(const ImageConstPtr& left, const ImageConstPtr& right) {
 
 int main(int argc, char **argv) {
 
-
-//  namedWindow("filtered disparity", WINDOW_AUTOSIZE);
   ros::init(argc, argv, "stereo_node");
 	ros::NodeHandle nh;
-  pcpub = nh.advertise<sensor_msgs::PointCloud2> ("/camera/depth/pointcloud", 1);
   image_transport::ImageTransport it(nh);
+
+  //pointcloud publisher
+  pcpub = nh.advertise<sensor_msgs::PointCloud2> ("/camera/depth/pointcloud", 1);
+  // depth image publisher
   pub = it.advertise("/camera/depth/image", 1);
-	message_filters::Subscriber<Image> left_sub(nh, "camera/left/ret", 1);
-	message_filters::Subscriber<Image> right_sub(nh, "camera/right/ret", 1);
 
+  //left and right rectified images subscriber
+	message_filters::Subscriber<Image> left_sub(nh, "camera/left/rect", 1);
+	message_filters::Subscriber<Image> right_sub(nh, "camera/right/rect", 1);
+
+  //time syncronizer to publish 2 images in the same callback function
 	TimeSynchronizer<Image, Image> sync(left_sub, right_sub, 10);
-	sync.registerCallback(boost::bind(&callback, _1, _2));
 
-
-
+  //call calback each time a new message arrives
+  sync.registerCallback(boost::bind(&callback, _1, _2));
 
 	ros::spin();
 	return 0;

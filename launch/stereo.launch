@@ -1,6 +1,6 @@
 <launch>
 
-        <node pkg="stereo" type="camera_simulator.py" name="camera_simulator" />
+        
 
         <node pkg="stereo"  type="rectify.py" name="rectify" />
 

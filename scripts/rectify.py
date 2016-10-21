@@ -12,26 +12,28 @@ from matplotlib import pyplot as plt
 import time
 import scipy
 
+#change it to your own global path to workspace
+GLOBAL_PATH = '/home/rachillesf/catkin_ws'
 
-class image_converter:
+class Rectify:
 
   def __init__(self):
-    self.left_pub = rospy.Publisher("/camera/left/ret",Image,queue_size=1)
-    self.right_pub = rospy.Publisher("/camera/right/ret",Image,queue_size=1)
+    self.left_pub = rospy.Publisher("/camera/left/rect",Image,queue_size=1)
+    self.right_pub = rospy.Publisher("/camera/right/rect",Image,queue_size=1)
     self.bridge = CvBridge()
     self.rimage_sub = message_filters.Subscriber("/camera/right/image_raw",Image)
     self.limage_sub = message_filters.Subscriber("/camera/left/image_raw",Image)
     self.ts = message_filters.TimeSynchronizer([self.limage_sub, self.rimage_sub], 1).registerCallback(self.callback)
-    self.dist = np.load('/home/rachillesf/catkin_ws/src/stereo/params/dist.npy')
-    self.mtx = np.array(np.load('/home/rachillesf/catkin_ws/src/stereo/params/mtx.npy'))
-    self.ret = [np.load('/home/rachillesf/catkin_ws/src/stereo/params/ret.npy')]
-    self.rvecs = np.load('/home/rachillesf/catkin_ws/src/stereo/params/rvecs.npy')
-    self.tvecs = np.load('/home/rachillesf/catkin_ws/src/stereo/params/tvecs.npy')
+    self.dist = np.load(GLOBAL_PATH + '/src/stereo/params/dist.npy')
+    self.mtx = np.array(np.load(GLOBAL_PATH + '/src/stereo/params/mtx.npy'))
+    self.ret = [np.load(GLOBAL_PATH + '/src/stereo/params/ret.npy')]
+    self.rvecs = np.load(GLOBAL_PATH + '/src/stereo/params/rvecs.npy')
+    self.tvecs = np.load(GLOBAL_PATH + '/src/stereo/params/tvecs.npy')
     print("Rectify Node Initialized")
 
 
 
-  def retify(self,img):
+  def rectify(self,img):
     #img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     img = cv2.resize(img, (900,600), interpolation = cv2.INTER_AREA)
     h,  w = img.shape[:2]
@@ -56,8 +58,8 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
 
-    left = cv2.pyrDown(self.retify(cv_image_left))
-    right = cv2.pyrDown(self.retify(cv_image_right))
+    left = cv2.pyrDown(self.rectify(cv_image_left))
+    right = cv2.pyrDown(self.rectify(cv_image_right))
 
 
     try:
@@ -72,8 +74,8 @@ class image_converter:
 
 
 def main(args):
-  rospy.init_node('image_converter1', anonymous=True)
-  ic = image_converter()
+  rospy.init_node('rectify', anonymous=True)
+  ic = Rectify()
   try:
     rospy.spin()
   except KeyboardInterrupt:
