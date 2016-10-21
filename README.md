@@ -32,8 +32,7 @@
 #### Dell Precision Workstation
 
 ## TODO:
-#### fix launch files path
-#### improve rectify node using c++ and better calibration
+#### improve rectify node using c++ and better calibration routine
 ####
 
 
