@@ -13,7 +13,7 @@
 #### (please, change the GLOBAL_PATH variable in rectify.py and camera_simulator.py to the path of your workspace)
 
 
-## Use on Your Own camera feed:
+## Use it on Your Own camera feed:
 ### $ rosrun stereo stereo_node
 ###
 ### rqt_graph vis:
