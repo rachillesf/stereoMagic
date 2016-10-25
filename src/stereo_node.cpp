@@ -62,6 +62,7 @@ Mat filtered_disp_vis;
 
 void compute_stereo(Mat& imL, Mat& imR)
 {
+  Mat Limage(imL);
   //confidence map
   Mat conf_map = Mat(imL.rows,imL.cols,CV_8U);
   conf_map = Scalar(255);
@@ -110,17 +111,48 @@ void compute_stereo(Mat& imL, Mat& imR)
   Q.at<double>(2,3) = -f;
   Q.at<double>(3,2) = 0.5;
 
+  /*
+  pcl::PointCloud<pcl::PointXYZRGBRGB>::Ptr pointcloud(new   pcl::PointCloud<pcl::PointXYZRGBRGB>());
+      Mat xyz;
+      reprojectImageTo3D(disp, xyz, Q, false, CV_32F);
+      pointcloud->width = static_cast<uint32_t>(disp.cols);
+      pointcloud->height = static_cast<uint32_t>(disp.rows);
+      pointcloud->is_dense = false;
+      pcl::PointXYZRGBRGB point;
+      for (int i = 0; i < disp.rows; ++i)
+          {
+              uchar* rgb_ptr = Frame_RGBRight.ptr<uchar>(i);
+              uchar* disp_ptr = disp.ptr<uchar>(i);
+              double* xyz_ptr = xyz.ptr<double>(i);
 
-  pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud(new  pcl::PointCloud<pcl::PointXYZ>());
+              for (int j = 0; j < disp.cols; ++j)
+              {
+                  uchar d = disp_ptr[j];
+                  if (d == 0) continue;
+                  Point3f p = xyz.at<Point3f>(i, j);
+
+                  point.z = p.z;   // I have also tried p.z/16
+                  point.x = p.x;
+                  point.y = p.y;
+
+                  point.b = rgb_ptr[3 * j];
+                  point.g = rgb_ptr[3 * j + 1];
+                  point.r = rgb_ptr[3 * j + 2];
+                  pointcloud->points.push_back(point);
+              }
+          }
+  */
+
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud(new  pcl::PointCloud<pcl::PointXYZRGB>());
   Mat xyz;
   reprojectImageTo3D(filtered_disp, xyz, Q, true);
   pointcloud->width = static_cast<uint32_t>(filtered_disp.cols);
   pointcloud->height = static_cast<uint32_t>(filtered_disp.rows);
   pointcloud->is_dense = true;
-  pcl::PointXYZ point;
+  pcl::PointXYZRGB point;
   for (int i = 0; i < filtered_disp.rows; ++i)
   {
-    uchar* rgb_ptr = imL.ptr<uchar>(i);
+    uchar* rgb_ptr = Limage.ptr<uchar>(i);
     uchar* filtered_disp_ptr = filtered_disp.ptr<uchar>(i);
     double* xyz_ptr = xyz.ptr<double>(i);
 
@@ -137,7 +169,9 @@ void compute_stereo(Mat& imL, Mat& imR)
         point.z = p.z;   // I have also tried p.z/16
         point.x = p.x;
         point.y = p.y;
-
+        point.b = rgb_ptr[ j];
+        point.g = rgb_ptr[ j];
+        point.r = rgb_ptr[ j];
         pointcloud->points.push_back(point);
       }
 
@@ -146,22 +180,26 @@ void compute_stereo(Mat& imL, Mat& imR)
         point.z = 0.0;   // I have also tried p.z/16
         point.x = 0.0;
         point.y = 0.0;
+
+        point.b = rgb_ptr[3 * j];
+        point.g = rgb_ptr[3 * j];
+        point.r = rgb_ptr[3 * j];
         pointcloud->points.push_back(point);
       }
     }
   }
 
   // voxel grid filter
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new  pcl::PointCloud<pcl::PointXYZ>());
-  pcl::VoxelGrid<pcl::PointXYZ> sor;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered(new  pcl::PointCloud<pcl::PointXYZRGB>());
+  pcl::VoxelGrid<pcl::PointXYZRGB> sor;
   sor.setInputCloud (pointcloud);
-  sor.setLeafSize (0.03, 0.03, 0.03);
+  sor.setLeafSize (0.01, 0.01, 0.01);
   sor.filter (*cloud_filtered);
 
 
   //outliner removal filter
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered2(new  pcl::PointCloud<pcl::PointXYZ>());
-  pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor1;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered2(new  pcl::PointCloud<pcl::PointXYZRGB>());
+  pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor1;
   sor1.setInputCloud (cloud_filtered);
   sor1.setMeanK (100);
   sor1.setStddevMulThresh (0.001);
