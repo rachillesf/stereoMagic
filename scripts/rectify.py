@@ -35,7 +35,7 @@ class Rectify:
 
   def rectify(self,img):
     #img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    img = cv2.resize(img, (900,600), interpolation = cv2.INTER_AREA)
+    #img = cv2.resize(img, (900,600), interpolation = cv2.INTER_AREA)
     h,  w = img.shape[:2]
     newcameramtx, roi=cv2.getOptimalNewCameraMatrix(self.mtx,self.dist,(w,h),0,(w,h))
     # undistort

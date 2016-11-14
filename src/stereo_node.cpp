@@ -44,11 +44,11 @@ image_transport::Publisher pub;
 ros::Publisher pcpub;
 
 //parameters for stereo matching and filtering
-double vis_mult = 3.0;
-int wsize = 10;
-int max_disp = 16 * 15;
+double vis_mult = 5.0;
+int wsize = 13;
+int max_disp = 16 * 10;
 double lambda = 10000.0;
-double sigma = 0.8;
+double sigma = 1.0;
 
 
 //Some object instatiation that can be done only once
@@ -101,47 +101,21 @@ void compute_stereo(Mat& imL, Mat& imR)
   // Q matrix (guess until we can do the correct calib process)
   double w = imR.cols;
   double  h = imR.rows;
-  double f = 0.8*w ;
-
+  double f = 843.947693;
+  double cx = 508.062911;
+  double cx1 = 526.242457;
+  double cy = 385.070250;
+  double Tx = -120.00;
   Mat Q = Mat(4,4, CV_64F, double(0));
   Q.at<double>(0,0) = 1.0;
-  Q.at<double>(0,3) = -0.5*w;
-  Q.at<double>(1,1) = -1.0;
-  Q.at<double>(1,3) = 0.5*h;
-  Q.at<double>(2,3) = -f;
-  Q.at<double>(3,2) = 0.5;
+  Q.at<double>(0,3) = -cx;
+  Q.at<double>(1,1) = 1.0;
+  Q.at<double>(1,3) = -cy;
+  Q.at<double>(2,3) = f;
+  Q.at<double>(3,2) = -1.0/ Tx;
+  Q.at<double>(3,3) = ( cx - cx1)/ Tx;
 
-  /*
-  pcl::PointCloud<pcl::PointXYZRGBRGB>::Ptr pointcloud(new   pcl::PointCloud<pcl::PointXYZRGBRGB>());
-      Mat xyz;
-      reprojectImageTo3D(disp, xyz, Q, false, CV_32F);
-      pointcloud->width = static_cast<uint32_t>(disp.cols);
-      pointcloud->height = static_cast<uint32_t>(disp.rows);
-      pointcloud->is_dense = false;
-      pcl::PointXYZRGBRGB point;
-      for (int i = 0; i < disp.rows; ++i)
-          {
-              uchar* rgb_ptr = Frame_RGBRight.ptr<uchar>(i);
-              uchar* disp_ptr = disp.ptr<uchar>(i);
-              double* xyz_ptr = xyz.ptr<double>(i);
 
-              for (int j = 0; j < disp.cols; ++j)
-              {
-                  uchar d = disp_ptr[j];
-                  if (d == 0) continue;
-                  Point3f p = xyz.at<Point3f>(i, j);
-
-                  point.z = p.z;   // I have also tried p.z/16
-                  point.x = p.x;
-                  point.y = p.y;
-
-                  point.b = rgb_ptr[3 * j];
-                  point.g = rgb_ptr[3 * j + 1];
-                  point.r = rgb_ptr[3 * j + 2];
-                  pointcloud->points.push_back(point);
-              }
-          }
-  */
 
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud(new  pcl::PointCloud<pcl::PointXYZRGB>());
   Mat xyz;
@@ -164,11 +138,11 @@ void compute_stereo(Mat& imL, Mat& imR)
       Point3f p = xyz.at<Point3f>(i, j);
 
       double radius = sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
-      if(radius < 8)
+      if(radius < 20*100)
       {
-        point.z = p.z;   // I have also tried p.z/16
-        point.x = p.x;
-        point.y = p.y;
+        point.z = p.z/100.0;
+        point.x = p.x/100.0;
+        point.y = p.y/100.0;
         point.b = rgb_ptr[ j];
         point.g = rgb_ptr[ j];
         point.r = rgb_ptr[ j];
@@ -177,7 +151,7 @@ void compute_stereo(Mat& imL, Mat& imR)
 
       else
       {
-        point.z = 0.0;   // I have also tried p.z/16
+        point.z = 0.0;
         point.x = 0.0;
         point.y = 0.0;
 
@@ -188,6 +162,7 @@ void compute_stereo(Mat& imL, Mat& imR)
       }
     }
   }
+
 
   // voxel grid filter
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered(new  pcl::PointCloud<pcl::PointXYZRGB>());
@@ -204,6 +179,13 @@ void compute_stereo(Mat& imL, Mat& imR)
   sor1.setMeanK (100);
   sor1.setStddevMulThresh (0.001);
   sor1.filter (*cloud_filtered2);
+  if(enableVisualization)
+  {
+    pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
+    cv::imshow(OPENCV_WINDOW, filtered_disp_vis);
+    viewer.showCloud(cloud_filtered2);
+    cv::waitKey(3);
+  }
 
    // Convert to ROS data type
    sensor_msgs::PointCloud2 pointcloud_msg;
@@ -213,13 +195,7 @@ void compute_stereo(Mat& imL, Mat& imR)
    // Publishes pointcloud message
    pcpub.publish(pointcloud_msg);
 
-   if(enableVisualization)
-   {
-     pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
-     cv::imshow(OPENCV_WINDOW, filtered_disp_vis);
-     viewer.showCloud(cloud_filtered2);
-     cv::waitKey(3);
-   }
+
 }
 
 
@@ -274,7 +250,7 @@ int main(int argc, char **argv) {
 	message_filters::Subscriber<Image> right_sub(nh, "camera/right/rect", 1);
 
   //time syncronizer to publish 2 images in the same callback function
-	TimeSynchronizer<Image, Image> sync(left_sub, right_sub, 10);
+	TimeSynchronizer<Image, Image> sync(left_sub, right_sub, 1);
 
   //call calback each time a new message arrives
   sync.registerCallback(boost::bind(&callback, _1, _2));
