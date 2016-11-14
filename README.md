@@ -6,7 +6,7 @@
 [![Alt text for your video](http://img.youtube.com/vi/ZUinHSjUZNM/0.jpg)](https://www.youtube.com/watch?v=ZUinHSjUZNM)
 
 ### Disparity Image and PointCloud Generation:
-<img src="https://s18.postimg.org/xfvf89nrt/imagem_pointcloud2.png" width="700"/>
+<img src="https://s17.postimg.org/sz9l3om67/imagem_pointcloud2.png" width="800"/>
 
 ## Quick Example(no camera needed! uses sample images):
 ### $ roslaunch roslaunch stereo stereo_sim.launch
@@ -21,7 +21,7 @@
 
 
 
-## Depends:
+## Dependences:
 #### ROS (tested with kinetic)
 #### opencv 3.1 with contrib modules
 #### PCL 1.7 (comes with ROS kinect full-desktop-install)
